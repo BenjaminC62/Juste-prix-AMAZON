@@ -10,6 +10,17 @@
 
 ## Répartition des tâches
 
+### Mathias : 
+* Fonction qui choisit aléatoirement un article amazon
+
+### Benjamin : 
+* Fonction qui récupère l'image de l'article
+
+### Mathéo :
+* Fonction qui récupère le nom de l'article
+
+### Simon :
+* Fonction qui récupère le prix de l'article
 
 ---
 
