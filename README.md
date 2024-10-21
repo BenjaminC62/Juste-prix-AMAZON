@@ -43,11 +43,11 @@ Nous avons choisi d'utiliser une "developer branch workflow".
 
 ## Définition du Product backlog
 
-* Création du projet
+* Création du projet  :white_check_mark:
 * Création d'une fonction qui choisit aléatoirement un article Amazon
 * Création d'une fonction qui récupère le prix d'un article placé en paramètre
-* Création d'une fonction qui récupère l'image de l'article placé en paramètre
-* Création d'une fonction qui récupère le nom de l'article placé en paramètre
-* Création de la fonction principale du jeu
+* Création d'une fonction qui récupère l'image de l'article placé en paramètre :white_check_mark:
+* Création d'une fonction qui récupère le nom de l'article placé en paramètre :white_check_mark:
+* Création de la fonction principale du jeu 
 * Création d'un fichier de styles 
 
