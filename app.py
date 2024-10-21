@@ -1,9 +1,21 @@
+import sqlite3
+
 from flask import Flask, render_template
 from bs4 import BeautifulSoup
 import requests
+from flask_wtf import FlaskForm
+from wtforms.fields.numeric import IntegerField
+from wtforms.validators import DataRequired
+
+con = sqlite3.connect('justePrix.db', check_same_thread=False)
+
 app = Flask(__name__)
+app.secret_key = 'secret'
 
 article = "B0B928B6BC"
+
+class justePrix(FlaskForm) :
+    prix_article = IntegerField('prix_article', validators=[DataRequired()])
 
 @app.route('/')
 def justePrixAmazon():
@@ -35,6 +47,17 @@ def getNom(article):
 
 print(getNom("B0B928B6BC"))
 
+def creatation_bd():
+    try:
+        conn = sqlite3.connect('justePrix.db')
+        cursor = conn.cursor()
+        cursor.execute('''CREATE TABLE Article(id INTEGER PRIMARY KEY, nom_article TEXT, prix_article INTEGER)''')
+        conn.commit()
+        conn.close()
+    except(sqlite3.OperationalError):
+        print("La table existe déjà")
+
+creatation_bd()
 
 if __name__ == '__main__':
     app.run()
