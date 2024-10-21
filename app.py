@@ -13,7 +13,7 @@ con = sqlite3.connect('justePrix.db', check_same_thread=False)
 app = Flask(__name__)
 app.secret_key = 'secret'
 
-article = "B0B928B6BC"
+article = "B000I5ZK2U"
 
 class justePrix(FlaskForm) :
     prix_article = IntegerField('prix_article', validators=[DataRequired()])
@@ -30,52 +30,52 @@ def recupereImageArticle(article):
 def get_prix_article(article):
     r = requests.get(" http://ws.chez-wam.info/" + article)
     try:
-        price = r.json()["price"]
+        price = r.json()["price"][:-1] # récupère le prix de l'article
+        for i in price:
+            if i == ",":
+                price = price.replace(i, ".")
+            elif i == " ":
+                price = price.replace(i, "")
+        result = float(price) # converti la valeur du prix en str -> float
+        print(type(result))
     except:
         raise Exception("Prix de l'article n'est pas disponible !")
-    return price
+    return result
 
-print(get_prix_article("B0B928B6BC"))
+print(get_prix_article("B000I5ZK2U"))
 
 def getNom(article):
-    o={}
-
-    target_url="https://www.amazon.com/dp/"+article
-
-    headers={"accept-language": "en-US,en;q=0.9","accept-encoding": "gzip, deflate, br","User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36","accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"}
-
-    resp = requests.get(target_url, headers=headers)
-
-    soup=BeautifulSoup(resp.text,'html.parser')
-
+    r = requests.get(" http://ws.chez-wam.info/" + article)
     try:
-        o["title"]=soup.find('h1',{'id':'title'}).text.strip()
+        name = r.json()["title"]
     except:
-        o["title"]=None
+        raise Exception("Nom de l'article n'est pas disponible !")
+    return name
 
-    return o["title"]
-
-print(getNom("B0B928B6BC"))
+print(getNom("B000I5ZK2U"))
 
 def creation_bd():
     try:
         conn = sqlite3.connect('justePrix.db')
         cursor = conn.cursor()
-        cursor.execute('''CREATE TABLE ARTICLE(id INTEGER PRIMARY KEY, nom_article TEXT, prix_article INTEGER)''')
+        cursor.execute('''CREATE TABLE ARTICLE(id INTEGER PRIMARY KEY, nom_article TEXT, prix_article FLOAT)''')
         conn.commit()
         conn.close()
     except sqlite3.OperationalError:
         print("La table existe déjà")
 
 
-def insertion_bd(article, prix):
+def insertion_bd(article):
+    nom_article = getNom(article)
+    prix_article = get_prix_article(article)
+
     conn = sqlite3.connect('justePrix.db')
     cursor = conn.cursor()
-    cursor.execute('''INSERT INTO ARTICLE(id,nom_article, prix_article) VALUES(getNom(article),get_prix_article(article) )''')
+    cursor.execute('''INSERT INTO ARTICLE(id,nom_article, prix_article) VALUES(?,?,?)''', (1, nom_article, prix_article))
     conn.commit()
     conn.close()
 
-insertion_bd(article, get_prix_article(article))
+insertion_bd(article)
 
 if not exists('justePrix.db'):
     creation_bd()
