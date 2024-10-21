@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr-FR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -11,6 +11,11 @@
     <h1>Juste prix amazon</h1>
     {% if form %}
         <form action="" method="post">
+            {% if image %}
+                <img src="{{ image }}" width="200px" height="200px" alt="image de l'article">
+            {% else %}
+                <p>Image non disponible</p>
+            {% endif %}
             {{ form.csrf_token }}
             {{ form.prix_article.label }} : {{ form.prix_article() }}
             <button type="submit">Valider</button>
