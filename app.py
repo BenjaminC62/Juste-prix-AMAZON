@@ -2,11 +2,12 @@ import sqlite3
 from os.path import exists
 
 from flask import Flask, render_template
-from bs4 import BeautifulSoup
 import requests
 from flask_wtf import FlaskForm
 from wtforms.fields.numeric import IntegerField
 from wtforms.validators import DataRequired
+
+import random
 
 con = sqlite3.connect('justePrix.db', check_same_thread=False)
 
@@ -20,6 +21,15 @@ class justePrix(FlaskForm) :
 
 @app.route('/')
 def justePrixAmazon():
+    item_random = random.randint(1,10)
+    conn = sqlite3.connect('justePrix.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM ARTICLE WHERE id = ?", item_random)
+    article = cursor.fetchone()
+    conn.close()
+
+    print(article)
+
     return render_template('game.html', article=article, nom=getNom(article), image=recupereImageArticle(article))
 
 def recupereImageArticle(article):
@@ -58,7 +68,7 @@ def creation_bd():
     try:
         conn = sqlite3.connect('justePrix.db')
         cursor = conn.cursor()
-        cursor.execute('''CREATE TABLE ARTICLE(id INTEGER PRIMARY KEY, nom_article TEXT, prix_article FLOAT)''')
+        cursor.execute('''CREATE TABLE ARTICLE(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nom_article TEXT, prix_article FLOAT)''')
         conn.commit()
         conn.close()
     except sqlite3.OperationalError:
@@ -71,7 +81,7 @@ def insertion_bd(article):
 
     conn = sqlite3.connect('justePrix.db')
     cursor = conn.cursor()
-    cursor.execute('''INSERT INTO ARTICLE(id,nom_article, prix_article) VALUES(?,?,?)''', (1, nom_article, prix_article))
+    cursor.execute('''INSERT INTO ARTICLE(nom_article, prix_article) VALUES(?,?)''', (nom_article, prix_article))
     conn.commit()
     conn.close()
 
