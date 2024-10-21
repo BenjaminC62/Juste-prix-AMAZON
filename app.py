@@ -14,23 +14,50 @@ con = sqlite3.connect('justePrix.db', check_same_thread=False)
 app = Flask(__name__)
 app.secret_key = 'secret'
 
-article = "B000I5ZK2U"
+image = ""
+prix = 0
+nom = ""
 
 class justePrix(FlaskForm) :
-    prix_article = IntegerField('prix_article', validators=[DataRequired()])
+    prix_article = IntegerField('Prix de larticle' , validators=[DataRequired()])
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def justePrixAmazon():
-    item_random = random.randint(1,10)
+    global image
+    global prix
+    global nom
+
+    form = justePrix()
+
+    if form.validate_on_submit():
+        if form.prix_article.data == prix:
+            return "Bravo, vous avez trouvé le juste prix !"
+        elif form.prix_article.data > prix:
+            return "Le prix est trop grand"
+        else:
+            return "Le prix est trop petit"
+    return render_template('game.html', form=form, prix=prix, nom=nom)
+
+def choisirArticle():
+    global image
+    global prix
+    global nom
+
     conn = sqlite3.connect('justePrix.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM ARTICLE WHERE id = ?", item_random)
+    cursor.execute("SELECT COUNT(*) FROM ARTICLE")
+    nb_article = cursor.fetchone()[0]
+    conn.commit()
+    item_random = random.randint(1, nb_article)
+    cursor.execute("SELECT * FROM ARTICLE WHERE id = %d" % item_random)
     article = cursor.fetchone()
+    conn.commit()
     conn.close()
-
     print(article)
 
-    return render_template('game.html', article=article, nom=getNom(article), image=recupereImageArticle(article))
+    nom = article[1]
+    prix = article[2]
+
 
 def recupereImageArticle(article):
     r = requests.get(" http://ws.chez-wam.info/" + article)
@@ -52,8 +79,6 @@ def get_prix_article(article):
         raise Exception("Prix de l'article n'est pas disponible !")
     return result
 
-print(get_prix_article("B000I5ZK2U"))
-
 def getNom(article):
     r = requests.get(" http://ws.chez-wam.info/" + article)
     try:
@@ -61,8 +86,6 @@ def getNom(article):
     except:
         raise Exception("Nom de l'article n'est pas disponible !")
     return name
-
-print(getNom("B000I5ZK2U"))
 
 def creation_bd():
     try:
@@ -74,18 +97,21 @@ def creation_bd():
     except sqlite3.OperationalError:
         print("La table existe déjà")
 
-
-def insertion_bd(article):
-    nom_article = getNom(article)
-    prix_article = get_prix_article(article)
-
+def insertion_bd():
+    liste_article = ["B000I5ZK2U", "B0B5X5KBYG", "B0CN3C6G1M", "B0BPS5392V"]
     conn = sqlite3.connect('justePrix.db')
     cursor = conn.cursor()
-    cursor.execute('''INSERT INTO ARTICLE(nom_article, prix_article) VALUES(?,?)''', (nom_article, prix_article))
+    cursor.execute('''DELETE FROM ARTICLE''')
+    conn.commit()
+    for i in range(len(liste_article)):
+        nom_article = getNom(liste_article[i])
+        prix_article = get_prix_article(liste_article[i])
+        cursor.execute('''INSERT INTO ARTICLE(nom_article, prix_article) VALUES(?,?)''', (nom_article, prix_article))
     conn.commit()
     conn.close()
 
-insertion_bd(article)
+insertion_bd()
+
 
 if not exists('justePrix.db'):
     creation_bd()
