@@ -1,4 +1,5 @@
 import sqlite3
+from os.path import exists
 
 from flask import Flask, render_template
 from bs4 import BeautifulSoup
@@ -26,6 +27,15 @@ def recupereImageArticle(article):
     image = r.json()["images"][0]
     return image
 
+def get_prix_article(article):
+    r = requests.get(" http://ws.chez-wam.info/" + article)
+    try:
+        price = r.json()["price"]
+    except:
+        raise Exception("Prix de l'article n'est pas disponible !")
+    return price
+
+print(get_prix_article("B0B928B6BC"))
 
 def getNom(article):
     o={}
@@ -47,17 +57,28 @@ def getNom(article):
 
 print(getNom("B0B928B6BC"))
 
-def creatation_bd():
+def creation_bd():
     try:
         conn = sqlite3.connect('justePrix.db')
         cursor = conn.cursor()
-        cursor.execute('''CREATE TABLE Article(id INTEGER PRIMARY KEY, nom_article TEXT, prix_article INTEGER)''')
+        cursor.execute('''CREATE TABLE ARTICLE(id INTEGER PRIMARY KEY, nom_article TEXT, prix_article INTEGER)''')
         conn.commit()
         conn.close()
-    except(sqlite3.OperationalError):
+    except sqlite3.OperationalError:
         print("La table existe déjà")
 
-creatation_bd()
+
+def insertion_bd(article, prix):
+    conn = sqlite3.connect('justePrix.db')
+    cursor = conn.cursor()
+    cursor.execute('''INSERT INTO ARTICLE(id,nom_article, prix_article) VALUES(getNom(article),get_prix_article(article) )''')
+    conn.commit()
+    conn.close()
+
+insertion_bd(article, get_prix_article(article))
+
+if not exists('justePrix.db'):
+    creation_bd()
 
 if __name__ == '__main__':
     app.run()
